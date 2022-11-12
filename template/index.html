@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link class="liht" rel="stylesheet" id="styles" href="/static/style.css">
+  <link rel="icon" href="/static/LOGO.PNG">
+  <title>Space-Chat</title>
+    
+  <script src="/static/JQuery.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.3/socket.io.js" integrity="sha512-iWPnCISAd/J+ZacwV2mbNLCaPGRrRo5OS81lKTVPtRg1wGTC20Cfmp5Us5RcbLv42QLdbAWl0MI57yox5VecQg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+
+<body class="body">
+  <section class="msger">
+    <header class="msger-header">
+      
+      <a onclick="abrirModale()" style="cursor: pointer;" >
+        <div class='msg-img1' style='background-image: url(/static/LOGO.PNG)'></div> 
+      </a>
+      
+      <div class="msger-header-title" >
+        <div class='nombre' style='background-image: url(/static/nombre.PNG)'></div>
+
+      </div>
+
+      <a onclick="cambiarStyle()" style="cursor: pointer;" >
+        <div class="fecha" style="float: left; cursor: context-menu;">
+          <h4>{{fecha}}</h4>
+        </div>
+        <div class="luna" ></div>
+      </a>
+
+    </header>
+
+    <main class="msger-chat">
+      <ul id="message"></ul>
+    </main>
+
+    <form class="msger-inputarea">
+      <input type="text" class="msger-input" placeholder="Escriba su mensage..." id="myMessage" >
+      <button type="submit" class="msger-send-btn" id="send">Enviar</button>
+    </form>
+    
+      
+  </section>
+
+  
+
+  <div id="modale" class="modale opened" aria-hidden="true">
+    <div class="modal-dialog">
+      <form class="datosForm">
+        <div>
+          <a  onclick="cerrarModale()"><h3 style="cursor: pointer; margin-left: 90%; margin-top: 6px;" >X</h3></a>
+          <div id="imagen" class='msg-img1' style=" margin-left: 42%; "></div>
+        </div>
+
+        <h2 style="padding-top: 10px;">Datos de usuario</h2>
+        
+        <div class="modal-body">
+          <div class="datos">
+            <input  type="text" id="usuario" class="usuario" placeholder="Introdusca un usuario" size="20" /><br>
+          </div>
+
+          <div class="datos">
+            <input type="text" id="color" class="color" placeholder="Introdusca un color" size="20" /><br>
+          </div>
+
+          <div style="padding-top: 10px; margin-left: 14px;" id="image">
+            <a onclick="cambiarImg('imagen-1')" style=" float: left; cursor: pointer;" >
+              <div class='imagen-1' ></div> 
+            </a>
+            <a onclick="cambiarImg('imagen-2')" style="float: left; cursor: pointer;" >
+              <div class='imagen-2' ></div> 
+            </a>
+            <a onclick="cambiarImg('imagen-3')" style="float: left; cursor: pointer;" >
+              <div class='imagen-3' ></div> 
+            </a>
+            <a onclick="cambiarImg('imagen-5')" style="float: left; cursor: pointer;" >
+              <div class='imagen-5' ></div> 
+            </a>
+            <a onclick="cambiarImg('imagen-6')" style="float: left; cursor: pointer;" >
+              <div class='imagen-6' ></div> 
+            </a>
+          </div>
+          
+        <span class="button-box" >
+          <button class="custom-btn btn-3" type="submit" style="margin-top: 20px;"><span><h4> Entrar</h4></span></button>
+        </span>
+        
+      </form>
+    </div> 
+  </div>
+
+</body>
+
+<script>
+  const socket = io();
+  const msgerInput = get(".msger-input");
+  const msgerForm = get(".msger-inputarea");
+  const msgerChat = get(".msger-chat");
+  const imgLogo = "../static/foto5.jpg";
+  const imgUser = "../static/foto6.jpg";
+
+  const datosForm = get(".datosForm");
+  const usuario = get(".usuario");
+  const color = get(".color");
+
+  //socket.on('message', function(mensage){
+  //  if ( mensage[0]==$('#usuario').val()){
+  //    $('#message').append("<div class='msg right-msg'><div class='msg-img' style='background-image: url(../static/LOGO.png)'></div><div class='msg-bubble'><div class='msg-info'><div class='msg-info-name'>"+mensage[0] +"</div><div class='msg-info-time'>"+ mensage[2] +"</div></div><div class='msg-text'>"+ mensage[1] +"</div></div></div>");
+  //  }else{
+  //    $('#message').append('<div class="msg left-msg"><div class="msg-img" style="background-image: url(../static/foto6.jpg)"></div><div class="msg-bubble"><div class="msg-info"><div class="msg-info-name">'+ mensage[0]+'</div><div class="msg-info-time">'+ mensage[2] +'</div></div><div class="msg-text">'+ mensage[1] +'</div></div></div>');
+  //  }   
+  //})
+
+  
+  //$('#send').on('click', function () {
+  //  socket.send([$('#usuario').val()+'*'+$('#myMessage').val()]);
+  //  $('#myMessage').val('');
+  //});
+
+  
+
+
+  socket.on('message', function(mensage){
+    if ( mensage[0]==$('#usuario').val()){
+      appendMessage("right", mensage[4], mensage[2], mensage[1], mensage[0], mensage[3]);
+    }else{
+      appendMessage("left", mensage[4], mensage[2], mensage[1], mensage[0], mensage[3]);
+    } 
+    
+  })
+
+  datosForm.addEventListener("submit", event =>{
+    event.preventDefault();
+
+    const textUsuario = usuario.value;
+    const textColor = color.value;
+
+
+    if (!textColor || !textUsuario) return;
+    textUsuario.value = "";
+    cerrarModale();
+
+  })
+
+
+  msgerForm.addEventListener("submit", event => {
+    event.preventDefault();
+
+    const msgText = msgerInput.value;
+    if (!msgText) return;
+
+    if (!$('#image').val()){
+      $('#image').val("imagen-1");
+    };
+  
+    socket.send([$('#usuario').val()+'*'+msgText+"*"+$('#color').val()+"*"+$('#image').val()]);
+    msgerInput.value = "";
+
+  });
+
+  function appendMessage(side, img, time, text, name, colorName) {
+    const msgHTML = `
+      <div class="msg ${side}-msg">
+        <div class=${img}></div>
+
+        <div class="msg-bubble">
+          <div class="msg-info">
+            <div class=${colorName}>${name}</div>
+            <div class="msg-info-time"><h3>${time}</h3></div>
+          </div>
+
+          <div class="msg-text">${text}</div>
+        </div>
+      </div>
+    `;
+
+    msgerChat.insertAdjacentHTML("beforeend", msgHTML);
+    msgerChat.scrollTop += 500;
+  }
+
+
+  function get(selector, root = document) {
+    return root.querySelector(selector);
+  }
+
+  function abrirModale(){
+    htmlModale = document.getElementById("modale");
+    htmlModale.setAttribute("class", "modale opened");
+
+  }
+  function cerrarModale(){
+    htmlModale = document.getElementById("modale");
+    htmlModale.setAttribute("class", "modale");
+  }
+
+  function cambiarImg(classType){
+    htmlModale = document.getElementById("imagen");
+    htmlModale.setAttribute("class", classType);
+    $('#image').val(classType);
+  }
+
+  function cambiarStyle(){
+    htmlModale = document.getElementById("styles");
+    if (htmlModale.classList.contains("dark")){
+      htmlModale.setAttribute("href", "/static/style.css");
+      htmlModale.setAttribute("class", "liht");
+    }else{
+      htmlModale.setAttribute("href", "/static/styleDarck.css");
+      htmlModale.setAttribute("class", "dark");
+    };
+  }
+  
+
+</script>
+</html>
