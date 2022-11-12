@@ -36,4 +36,4 @@ def server(msg):
     send(mensage, broadcast=True)
 
 if __name__ == '__main__':
-    socketio.run(app,allow_unsafe_werkzeug=True, debug=True)
+    socketio.run(app, host="0.0.0.0", port=8000, debug=False)
